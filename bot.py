@@ -172,7 +172,7 @@ async def get_uname(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=output)
 
 async def get_critical(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    stdin, stdout, stderr = ssh.exec_command('dmesg | grep -i error | tail -n 10')
+    stdin, stdout, stderr = ssh.exec_command('dmesg | grep -E -i "error|fail|critical | tail -n 10')
     output = stdout.read().decode('utf-8')
     await context.bot.send_message(chat_id=update.effective_chat.id, text=output)
 
