@@ -239,9 +239,13 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 #start of log
 async def get_repl_logs(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    stdin, stdout, stderr = ssh.exec_command('cat /var/log/postgresql/postgresql-14-main.log | tail -n 5')
+    command = 'grep "replication" /var/log/postgresql/pg_logs/postgresql-14-main.log | tail -n 5'
+    stdin, stdout, stderr = ssh.exec_command(command)
     output = stdout.read().decode('utf-8')
+    if not output:
+        output = "Логи репликации пусты или не найдены."
     await context.bot.send_message(chat_id=update.effective_chat.id, text=output)
+
 #end
 
 #db_telegram_output
