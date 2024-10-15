@@ -8,7 +8,10 @@ from dotenv import load_dotenv
 import paramiko
 import subprocess
 
-logging.basicConfig(filename='logs.txt', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='bot.log', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+LOG_FILE_PATH = "/var/log/postgresql/postgresql.log"
 
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
@@ -238,14 +241,20 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
 #end
 
 #start of log
-async def get_repl_logs(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    command = 'grep "replication" /var/log/postgresql/pg_logs/postgresql-14-main.log | tail -n 5'
-    stdin, stdout, stderr = ssh.exec_command(command)
-    output = stdout.read().decode('utf-8')
-    if not output:
-        output = "Логи репликации пусты или не найдены."
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=output)
-
+async def get_repl_logs(update: Update, context: CallbackContext) -> None:
+    try:
+        result = subprocess.run(
+            ["bash", "-c", f"cat {LOG_FILE_PATH} | grep repl | tail -n 15"],
+            capture_output=True,
+            text=True
+        )
+        logs = result.stdout
+        if logs:
+            update.message.reply_text(f"Последние репликационные логи:\n{logs}")
+        else:
+            update.message.reply_text("Репликационные логи не найдены.")
+    except Exception as e:
+        update.message.reply_text(f"Ошибка при получении логов: {str(e)}")
 #end
 
 #db_telegram_output
